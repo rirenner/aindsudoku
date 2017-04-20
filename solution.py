@@ -36,7 +36,6 @@ def assign_value(values, box, value):
     if values[box] == value:
         return values
 
-    print ("replacing {} with {}".format(box, value))
     values[box] = value
     if len(value) == 1:
         assignments.append(values.copy())
