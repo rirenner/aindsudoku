@@ -6,12 +6,23 @@ cols = '123456789'
 def cross(a, b):
     return [s+t for s in a for t in b]
 
+def combine(a,b):
+    result = list()
+    for (x, y) in zip(a, b):
+        result.append(x+y)
+    return result
+
+# diag = cross(rows, cols)
+diag_top = combine(rows, cols)
+diag_down = combine(rows, cols[::-1])
+
 boxes = cross(rows, cols)
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+diag_units = list((diag_top, diag_down))
+unitlist = row_units + column_units + square_units + diag_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
@@ -25,6 +36,7 @@ def assign_value(values, box, value):
     if values[box] == value:
         return values
 
+    print ("replacing {} with {}".format(box, value))
     values[box] = value
     if len(value) == 1:
         assignments.append(values.copy())
@@ -192,7 +204,7 @@ def search(values):
         return values ## Solved!
     # Choose one of the unfilled squares with the fewest possibilities
     n,s = min((len(values[s]), s) for s in boxes if len(values[s]) > 1)
-    # Now use recurrence to solve each one of the resulting sudokus, and 
+    # Now use recurrence to solve each one of the resulting sudokus, and
     for value in values[s]:
         new_sudoku = values.copy()
         new_sudoku[s] = value
@@ -211,10 +223,12 @@ def solve(grid):
     """
     values = grid_values(grid)
     values = search(values)
+    return values
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    result = solve(diag_sudoku_grid)
+    display(search(grid_values(diag_sudoku_grid)))
 
     try:
         from visualize import visualize_assignments
