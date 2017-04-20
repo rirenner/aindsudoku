@@ -51,10 +51,10 @@ def naked_twins(values):
         the values dictionary with the naked twins eliminated from peers.
     """
     # Find all instances of naked twins
-    for column in column_units:
+    for section in unitlist:
         keys_2_pair = list()
         remove_set = set()
-        current_test_dict = list(map(lambda x: (x, values[x]), column))
+        current_test_dict = list(map(lambda x: (x, values[x]), section))
 
         for k,v in current_test_dict:
             if len(v) == 2 and not len(keys_2_pair):
@@ -70,44 +70,6 @@ def naked_twins(values):
             if k not in keys_2_pair and len(v) > 1:
                 values = assign_value(values, k, "".join(list(sorted(set(list(v)) - remove_set))))
 
-    for row in row_units:
-        keys_2_pair = list()
-        remove_set = set()
-        current_test_dict = list(map(lambda x: (x, values[x]), row))
-
-        for k,v in current_test_dict:
-            if len(v) == 2 and not len(keys_2_pair):
-                keys_2_pair.append(k)
-            elif len(v) == 2 and values[keys_2_pair[0]] == v:
-                keys_2_pair.append(k)
-                remove_set = set(list(values[keys_2_pair[0]]))
-
-                break
-    # Eliminate the naked twins as possibilities for their peers
-        for k,v in current_test_dict:
-            if not remove_set: break
-            if k not in keys_2_pair and len(v) > 1:
-                values = assign_value(values, k, "".join(list(sorted(set(list(v)) - remove_set))))
-
-
-    for square in square_units:
-        keys_2_pair = list()
-        remove_set = set()
-        current_test_dict = list(map(lambda x: (x, values[x]), square))
-
-        for k,v in current_test_dict:
-            if len(v) == 2 and not len(keys_2_pair):
-                keys_2_pair.append(k)
-            elif len(v) == 2 and values[keys_2_pair[0]] == v:
-                keys_2_pair.append(k)
-                remove_set = set(list(values[keys_2_pair[0]]))
-
-                break
-    # Eliminate the naked twins as possibilities for their peers
-        for k,v in current_test_dict:
-            if not remove_set: break
-            if k not in keys_2_pair and len(v) > 1:
-                values = assign_value(values, k, "".join(list(sorted(set(list(v)) - remove_set))))
     return values
 
 
