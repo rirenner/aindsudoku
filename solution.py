@@ -159,6 +159,7 @@ def search(values):
     "Using depth-first search and propagation, try all possible values."
     # First, reduce the puzzle using the previous function
     values = reduce_puzzle(values)
+    values = naked_twins(values)
     if values is False:
         return False ## Failed earlier
     if all(len(values[s]) == 1 for s in boxes): 

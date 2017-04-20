@@ -3,11 +3,11 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: By identifying the unit wise forced digits reductions in remaining potential values in this unit can be taken. the propogation of this technique yields more complex solution states than possible with only single value comparisons
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: since "traditional" sodoku solutions could be found already by introducing a pair of diagonal units to the unitlist we leverage the existing functional solving logic.
 
 ### Install
 
