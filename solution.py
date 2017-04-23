@@ -22,6 +22,7 @@ row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
 diag_units = list((diag_top, diag_down))
+unitlist_orig = row_units + column_units + square_units
 unitlist = row_units + column_units + square_units + diag_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
@@ -41,16 +42,8 @@ def assign_value(values, box, value):
         assignments.append(values.copy())
     return values
 
-def naked_twins(values):
-    # values = search(values)
-    """Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-    # Find all instances of naked twins
+def test_twin_present(values):
+    twins = False
     for section in unitlist:
         keys_2_pair = list()
         remove_set = set()
@@ -62,13 +55,69 @@ def naked_twins(values):
             elif len(v) == 2 and values[keys_2_pair[0]] == v:
                 keys_2_pair.append(k)
                 remove_set = set(list(values[keys_2_pair[0]]))
+                twins = True
+                # print ("Twins still present! {}".format(remove_set))
+    return twins
 
-                break
-    # Eliminate the naked twins as possibilities for their peers
-        for k,v in current_test_dict:
-            if not remove_set: break
-            if k not in keys_2_pair and len(v) > 1:
-                values = assign_value(values, k, "".join(list(sorted(set(list(v)) - remove_set))))
+
+def naked_twins(values):
+    # values = search(values)
+    """Eliminate values using the naked twins strategy.
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary with the naked twins eliminated from peers.
+    """
+    # Find all instances of naked twins
+    # while test_twin_present(values):
+    stalled = False
+
+    while not stalled:
+        multi_values_before = [box for box in values.keys() if len(values[box]) > 1]
+        total_outstanding_before = len("".join(multi_values_before))
+
+        for section in unitlist_orig:
+            current_test_dict = dict()
+            for k in section:
+                current_test_dict[k] = values[k]
+
+            current_2_keys_list = [box for box in section if len(values[box]) == 2]
+            # print(current_2_keys_list )
+            current_2_vals_list = [val for val in map(lambda x: values[x], current_2_keys_list)]
+            # print(current_2_vals_list )
+
+            seen_twice = list(set(x for x in current_2_vals_list if current_2_vals_list.count(x) > 1))
+            seen_twice_keys = list(set(x for x in current_2_keys_list if values[x] in current_2_vals_list))
+            seen_twice_set = set()
+            for x in seen_twice:
+                y = list(x)
+                for z in y:
+                    seen_twice_set.add(z)
+
+
+            # print(seen_twice_set)
+            # print ("seen_twice: {}".format(seen_twice))
+            if not seen_twice: continue
+            # Eliminate the naked twins as possibilities for their peers
+            for k,v in current_test_dict.items():
+                if k not in seen_twice_keys:
+                    values = assign_value(values, k, "".join(list(sorted(set(list(v)) - seen_twice_set))))
+                    # print("updated a unit in section {}".format(unitlist.index(section)))
+
+        multi_values_after = [box for box in values.keys() if len(values[box]) > 1]
+        total_outstanding_after = len("".join(multi_values_after))
+
+        # print("tob: {b} toa: {a}".format(b=total_outstanding_before, a=total_outstanding_after))
+        # stalled = not( test_twin_present(values)) and (total_outstanding_before == total_outstanding_after)
+
+        stalled = total_outstanding_before == total_outstanding_after
+
+        unit_idx = unitlist_orig.index(section)
+        # print ("stalled: {} and test_twins present: {}".format(
+        #stalled,
+        #test_twin_present(values)
+        #))
 
     return values
 
@@ -149,6 +198,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
+        values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
@@ -158,8 +208,6 @@ def reduce_puzzle(values):
 def search(values):
     "Using depth-first search and propagation, try all possible values."
     # First, reduce the puzzle using the previous function
-    values = reduce_puzzle(values)
-    values = naked_twins(values)
     if values is False:
         return False ## Failed earlier
     if all(len(values[s]) == 1 for s in boxes): 
@@ -184,14 +232,16 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
     values = grid_values(grid)
+    values = reduce_puzzle(values)
     values = search(values)
     return values
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     result = solve(diag_sudoku_grid)
-    display(search(grid_values(diag_sudoku_grid)))
 
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
+    result = solve(diag_sudoku_grid)
     try:
         from visualize import visualize_assignments
         visualize_assignments(assignments)
